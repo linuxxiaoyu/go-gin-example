@@ -15,3 +15,7 @@ require (
 	gopkg.in/ini.v1 v1.60.1
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
+
+replace (
+	github.com/linuxxiaoyu/go-gin-example/pkg/setting	=> ./pkg/setting
+)
