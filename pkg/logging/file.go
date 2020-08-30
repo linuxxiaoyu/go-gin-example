@@ -2,10 +2,11 @@ package logging
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -32,12 +33,12 @@ func openLogFile(filePath string) *os.File {
 	case os.IsNotExist(err):
 		mkDir()
 	case os.IsPermission(err):
-		log.Fatal("Permission: %v", err)
+		logrus.Fatal("Permission: %v", err)
 	}
 
 	handle, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal("Fail to OpenFile: %v", err)
+		logrus.Fatal("Fail to OpenFile: %v", err)
 	}
 
 	return handle
