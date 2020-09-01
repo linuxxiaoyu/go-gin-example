@@ -13,6 +13,13 @@ import (
 	"github.com/unknwon/com"
 )
 
+// @Summary Get all tags
+// @Produce  json
+// @Params name query string false "Name"
+// @Params state query int false "State"
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /api/v1/tags [get]
 func GetTags(c *gin.Context) {
 	name := c.Query("name")
 
@@ -41,6 +48,14 @@ func GetTags(c *gin.Context) {
 	})
 }
 
+// @Summary Add a tag
+// @Produce  json
+// @Param name body string true "Name"
+// @Param state body int false "State"
+// @Param created_by body int false "CreatedBy"
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /api/v1/tags/ [post]
 func AddTag(c *gin.Context) {
 	name := c.Query("name")
 	state := com.StrTo(c.DefaultQuery("state", "0")).MustInt()
@@ -70,6 +85,15 @@ func AddTag(c *gin.Context) {
 	})
 }
 
+// @Summary Edit a tag
+// @Produce  json
+// @Param id path int true "ID"
+// @Param name body string true "ID"
+// @Param state body int false "State"
+// @Param modified_by body string true "ModifiedBy"
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /api/v1/tags/{id} [put]
 func EditTag(c *gin.Context) {
 	id := com.StrTo(c.Param("id")).MustInt()
 	name := c.Query("name")
@@ -115,6 +139,12 @@ func EditTag(c *gin.Context) {
 	})
 }
 
+// @Summary Delete a tag
+// @Produce  json
+// @Param id formData int true "ID"
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /api/v1/tags/{id} [delete]
 func DeleteTag(c *gin.Context) {
 	id := com.StrTo(c.Param("id")).MustInt()
 
