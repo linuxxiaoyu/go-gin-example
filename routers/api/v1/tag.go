@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/linuxxiaoyu/go-gin-example/models"
+	"github.com/linuxxiaoyu/go-gin-example/pkg/app"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/e"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/setting"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/util"
@@ -21,6 +22,7 @@ import (
 // @Failure 500 {object} app.Response
 // @Router /api/v1/tags [get]
 func GetTags(c *gin.Context) {
+	appG := app.Gin{c}
 	name := c.Query("name")
 
 	maps := make(map[string]interface{})
@@ -41,11 +43,7 @@ func GetTags(c *gin.Context) {
 	data["lists"] = models.GetTags(util.GetPage(c), setting.PageSize, maps)
 	data["total"] = models.GetTagTotal(maps)
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": data,
-	})
+	appG.Response(http.StatusOK, code, data)
 }
 
 // @Summary Add a tag
@@ -57,6 +55,7 @@ func GetTags(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/tags/ [post]
 func AddTag(c *gin.Context) {
+	appG := app.Gin{c}
 	name := c.Query("name")
 	state := com.StrTo(c.DefaultQuery("state", "0")).MustInt()
 	createdBy := c.Query("created_by")
@@ -78,11 +77,7 @@ func AddTag(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": make(map[string]string),
-	})
+	appG.Response(http.StatusOK, code, make(map[string]string))
 }
 
 // @Summary Edit a tag
@@ -95,6 +90,8 @@ func AddTag(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/tags/{id} [put]
 func EditTag(c *gin.Context) {
+	appG := app.Gin{c}
+
 	id := com.StrTo(c.Param("id")).MustInt()
 	name := c.Query("name")
 	modifiedBy := c.Query("modified_by")
@@ -132,11 +129,7 @@ func EditTag(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": make(map[string]string),
-	})
+	appG.Response(http.StatusOK, code, make(map[string]string))
 }
 
 // @Summary Delete a tag
@@ -146,6 +139,8 @@ func EditTag(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/tags/{id} [delete]
 func DeleteTag(c *gin.Context) {
+	appG := app.Gin{c}
+
 	id := com.StrTo(c.Param("id")).MustInt()
 
 	valid := validation.Validation{}
@@ -161,9 +156,5 @@ func DeleteTag(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": make(map[string]string),
-	})
+	appG.Response(http.StatusOK, code, make(map[string]string))
 }

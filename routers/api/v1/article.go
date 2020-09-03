@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/linuxxiaoyu/go-gin-example/pkg/app"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/logging"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/setting"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/util"
@@ -21,6 +22,7 @@ import (
 // @Failure 500 {object} app.Response
 // @Router /api/v1/articles/ [get]
 func GetArticle(c *gin.Context) {
+	appG := app.Gin{C: c}
 	id := com.StrTo(c.Param("id")).MustInt()
 
 	valid := validation.Validation{}
@@ -41,11 +43,7 @@ func GetArticle(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": data,
-	})
+	appG.Response(http.StatusOK, code, data)
 }
 
 // @Summary Get all articles
@@ -57,6 +55,7 @@ func GetArticle(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/articles [get]
 func GetArticles(c *gin.Context) {
+	appG := app.Gin{C: c}
 	data := make(map[string]interface{})
 	maps := make(map[string]interface{})
 	valid := validation.Validation{}
@@ -89,11 +88,7 @@ func GetArticles(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": data,
-	})
+	appG.Response(http.StatusOK, code, data)
 }
 
 // @Summary Add an article
@@ -108,6 +103,7 @@ func GetArticles(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/articles [post]
 func AddArticle(c *gin.Context) {
+	appG := app.Gin{c}
 	tagID := com.StrTo(c.Query("tag_id")).MustInt()
 	title := c.Query("title")
 	desc := c.Query("desc")
@@ -145,11 +141,7 @@ func AddArticle(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": make(map[string]interface{}),
-	})
+	appG.Response(http.StatusOK, code, make(map[string]interface{}))
 }
 
 // @Summary Edit an article
@@ -165,6 +157,7 @@ func AddArticle(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/articles/ [put]
 func EditArticle(c *gin.Context) {
+	appG := app.Gin{c}
 	valid := validation.Validation{}
 
 	id := com.StrTo(c.Param("id")).MustInt()
@@ -221,11 +214,7 @@ func EditArticle(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": make(map[string]string),
-	})
+	appG.Response(http.StatusOK, code, make(map[string]interface{}))
 }
 
 // @Summary Delete an article
@@ -235,6 +224,7 @@ func EditArticle(c *gin.Context) {
 // @Failure 500 {object} app.Response
 // @Router /api/v1/articles/ [delete]
 func DeleteArticle(c *gin.Context) {
+	appG := app.Gin{c}
 	id := com.StrTo(c.Param("id")).MustInt()
 
 	valid := validation.Validation{}
@@ -254,10 +244,5 @@ func DeleteArticle(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": make(map[string]string),
-	})
-
+	appG.Response(http.StatusOK, code, make(map[string]string))
 }
