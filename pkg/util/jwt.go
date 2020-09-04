@@ -13,7 +13,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-var jwtSecret = []byte(setting.JwtSecret)
+var jwtSecret = []byte(setting.AppSetting.JwtSecret)
 
 func GenerateTokem(username, password string) (string, error) {
 	nowTime := time.Now()

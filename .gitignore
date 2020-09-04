@@ -1,5 +1,6 @@
 go-gin-example
 conf
+runtime
 
 *.log
 *.exe
