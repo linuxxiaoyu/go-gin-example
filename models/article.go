@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type Article struct {
 	Model
 
@@ -15,15 +19,18 @@ type Article struct {
 	CoverImageUrl string `json:"cover_image_url"`
 }
 
-func ExistArticleByID(id int) bool {
+func ExistArticleByID(id int) (bool, error) {
 	var article Article
-	db.Select("id").Where("id = ?", id).First(&article)
-
-	if article.ID > 0 {
-		return true
+	err := db.Select("id").Where("id = ? AND deleted_on = ?", id, 0).First(&article).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return false, err
 	}
 
-	return false
+	if article.ID > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func GetArticleTotal(maps interface{}) (count int) {
@@ -37,21 +44,26 @@ func GetArticles(pageNum int, pageSize int, maps interface{}) (articles []Articl
 	return
 }
 
-func GetArticle(id int) (article Article) {
-	db.Where("id = ?", id).First(&article)
-	db.Model(&article).Related(&article.Tag)
+func GetArticle(id int) (*Article, error) {
+	var article Article
+	err := db.Where("id = ? AND deleted_on = ?", id, 0).First(&article).Related(&article.Tag).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
 
-	return
+	return &article, nil
 }
 
-func EditArticle(id int, data interface{}) bool {
-	db.Model(&Article{}).Where("id = ?", id).Updates(data)
+func EditArticle(id int, data interface{}) error {
+	if err := db.Model(&Article{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
+		return err
+	}
 
-	return true
+	return nil
 }
 
-func AddArticle(data map[string]interface{}) bool {
-	db.Create(&Article{
+func AddArticle(data map[string]interface{}) error {
+	article := Article{
 		TagID:         data["tag_id"].(int),
 		Title:         data["title"].(string),
 		Desc:          data["desc"].(string),
@@ -59,15 +71,20 @@ func AddArticle(data map[string]interface{}) bool {
 		CreatedBy:     data["created_by"].(string),
 		State:         data["state"].(int),
 		CoverImageUrl: data["cover_image_url"].(string),
-	})
+	}
 
-	return true
+	if err := db.Create(&article).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-func DeleteArticle(id int) bool {
-	db.Where("id = ?", id).Delete(Article{})
+func DeleteArticle(id int) error {
+	if err := db.Where("id = ?", id).Delete(Article{}).Error; err != nil {
+		return err
+	}
 
-	return true
+	return nil
 }
 
 func CleanAllArticle() bool {

@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type Tag struct {
 	Model
 
@@ -40,26 +44,34 @@ func AddTag(name string, state int, createdBy string) bool {
 	return true
 }
 
-func ExistTagByID(id int) bool {
+func ExistTagByID(id int) (bool, error) {
 	var tag Tag
-	db.Select("id").Where("id = ?", id).First(&tag)
-	if tag.ID > 0 {
-		return true
+	err := db.Select("id").Where("id = ? AND deleted_on = ?", id, 0).First(&tag).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return false, nil
 	}
 
-	return false
+	if tag.ID > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
-func EditTag(id int, data interface{}) bool {
-	db.Model(&Tag{}).Where("id = ?", id).Updates(data)
+func EditTag(id int, data interface{}) error {
+	if err := db.Model(&Tag{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
+		return err
+	}
 
-	return true
+	return nil
 }
 
-func DeleteTag(id int) bool {
-	db.Where("id = ?", id).Delete(&Tag{})
+func DeleteTag(id int) error {
+	if err := db.Where("id = ?", id).Delete(&Tag{}).Error; err != nil {
+		return err
+	}
 
-	return true
+	return nil
 }
 
 func CleanAllTag() bool {
