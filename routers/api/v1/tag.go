@@ -11,6 +11,7 @@ import (
 	"github.com/linuxxiaoyu/go-gin-example/pkg/e"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/setting"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/util"
+	"github.com/linuxxiaoyu/go-gin-example/service/tag_service"
 	"github.com/unknwon/com"
 )
 
@@ -98,7 +99,7 @@ func EditTag(c *gin.Context) {
 
 	valid := validation.Validation{}
 
-	var state int = -1
+	state := -1
 	if arg := c.Query("state"); arg != "" {
 		state = com.StrTo(arg).MustInt()
 		valid.Range(state, 0, 1, "state").Message("状态只允许0或1")
@@ -107,29 +108,39 @@ func EditTag(c *gin.Context) {
 	valid.Required(id, "id").Message("ID不能为空")
 	valid.Required(modifiedBy, "modified_by").Message("修改人不能为空")
 	valid.MaxSize(modifiedBy, 100, "modified_by").Message("修改人最长为100字符")
+	valid.Required(name, "name").Message("名称不能为空")
 	valid.MaxSize(name, 100, "name").Message("名称最长为100字符")
 
-	code := e.INVALID_PARAMS
-	if !valid.HasErrors() {
-		code = e.SUCCESS
-		if models.ExistTagByID(id) {
-			data := make(map[string]interface{})
-			data["modified_by"] = modifiedBy
-			if name != "" {
-				data["name"] = name
-			}
-
-			if state != -1 {
-				data["state"] = state
-			}
-
-			models.EditTag(id, data)
-		} else {
-			code = e.ERROR_NOT_EXIST_TAG
-		}
+	if valid.HasErrors() {
+		app.MarkErrors(valid.Errors)
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
 	}
 
-	appG.Response(http.StatusOK, code, make(map[string]string))
+	tagService := tag_service.Tag{
+		ID:         id,
+		Name:       name,
+		ModifiedBy: modifiedBy,
+		State:      state,
+	}
+
+	exists, err := tagService.ExistByID()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_EXIST_TAG_FAIL, nil)
+		return
+	}
+	if !exists {
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST_TAG, nil)
+		return
+	}
+
+	err = tagService.Edit()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_EDIT_TAG_FAIL, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
 
 // @Summary Delete a tag
@@ -146,15 +157,28 @@ func DeleteTag(c *gin.Context) {
 	valid := validation.Validation{}
 	valid.Min(id, 1, "id").Message("ID必须大于0")
 
-	code := e.INVALID_PARAMS
-	if !valid.HasErrors() {
-		code = e.SUCCESS
-		if models.ExistTagByID(id) {
-			models.DeleteTag(id)
-		} else {
-			code = e.ERROR_NOT_EXIST_TAG
-		}
+	if valid.HasErrors() {
+		app.MarkErrors(valid.Errors)
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
 	}
 
-	appG.Response(http.StatusOK, code, make(map[string]string))
+	tagService := tag_service.Tag{ID: id}
+	exists, err := tagService.ExistByID()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_EXIST_TAG_FAIL, nil)
+		return
+	}
+
+	if !exists {
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST_TAG, nil)
+		return
+	}
+
+	if err := tagService.Delete(); err != nil {
+		appG.Response(http.StatusOK, e.ERROR_DELETE_TAG_FAIL, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
