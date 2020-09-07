@@ -17,6 +17,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/linuxxiaoyu/go-gin-example/gredis"
+
 	"github.com/linuxxiaoyu/go-gin-example/models"
 
 	"github.com/linuxxiaoyu/go-gin-example/pkg/logging"
@@ -28,6 +30,7 @@ func main() {
 	setting.Setup()
 	models.Setup()
 	logging.Setup()
+	gredis.Setup()
 
 	router := routers.Init()
 
