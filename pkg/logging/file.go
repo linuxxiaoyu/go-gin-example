@@ -12,8 +12,7 @@ import (
 )
 
 func getLogFilePath() string {
-	return fmt.Sprintf(
-		"%s%s",
+	return filepath.Join(
 		setting.AppSetting.RuntimeRootPath,
 		setting.AppSetting.LogSavePath,
 	)

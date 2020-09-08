@@ -32,7 +32,10 @@ func GetImagePath() string {
 }
 
 func GetImageFullPath() string {
-	return setting.AppSetting.RuntimeRootPath + GetImagePath()
+	return filepath.Join(
+		setting.AppSetting.RuntimeRootPath,
+		GetImagePath(),
+	)
 }
 
 func CheckImageExt(fileName string) bool {

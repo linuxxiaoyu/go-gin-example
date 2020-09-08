@@ -2,7 +2,9 @@ package api
 
 import (
 	"net/http"
+	"path/filepath"
 
+	"github.com/linuxxiaoyu/go-gin-example/pkg/app"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/upload"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +12,14 @@ import (
 	"github.com/linuxxiaoyu/go-gin-example/pkg/logging"
 )
 
+// @Summary Upload an image
+// @Produce  json
+// @Param image formData file true "image"
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /upload [post]
 func UploadImage(c *gin.Context) {
+	appG := app.Gin{C: c}
 	code := e.SUCCESS
 	data := make(map[string]string)
 
@@ -18,11 +27,7 @@ func UploadImage(c *gin.Context) {
 	if err != nil {
 		logging.Warn(err)
 		code = e.ERROR
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  e.GetMsg(code),
-			"data": data,
-		})
+		appG.Response(http.StatusOK, code, data)
 		return
 	}
 
@@ -33,7 +38,7 @@ func UploadImage(c *gin.Context) {
 		fullPath := upload.GetImageFullPath()
 		savePath := upload.GetImagePath()
 
-		src := fullPath + imageName
+		src := filepath.Join(fullPath, imageName)
 		if !upload.CheckImageExt(imageName) || !upload.CheckImageSize(file) {
 			code = e.ERROR_UPLOAD_CHECK_IMAGE_FORMAT
 		} else {
@@ -46,14 +51,10 @@ func UploadImage(c *gin.Context) {
 				code = e.ERROR_UPLOAD_SAVE_IMAGE_FAIL
 			} else {
 				data["image_url"] = upload.GetImageFullUrl(imageName)
-				data["image_save_url"] = savePath + imageName
+				data["image_save_url"] = filepath.Join(savePath, imageName)
 			}
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": data,
-	})
+	appG.Response(http.StatusOK, code, data)
 }
