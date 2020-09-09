@@ -3,12 +3,15 @@ package v1
 import (
 	"net/http"
 
+	"github.com/linuxxiaoyu/go-gin-example/pkg/logging"
+
 	"github.com/astaxie/beego/validation"
 
 	"github.com/gin-gonic/gin"
 	"github.com/linuxxiaoyu/go-gin-example/models"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/app"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/e"
+	"github.com/linuxxiaoyu/go-gin-example/pkg/export"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/setting"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/util"
 	"github.com/linuxxiaoyu/go-gin-example/service/tag_service"
@@ -25,26 +28,34 @@ import (
 func GetTags(c *gin.Context) {
 	appG := app.Gin{c}
 	name := c.Query("name")
+	state := -1
 
-	maps := make(map[string]interface{})
-	data := make(map[string]interface{})
-
-	if name != "" {
-		maps["name"] = name
-	}
-
-	var state int = -1
 	if arg := c.Query("state"); arg != "" {
 		state = com.StrTo(arg).MustInt()
-		maps["state"] = state
 	}
 
-	code := e.SUCCESS
+	tagService := tag_service.Tag{
+		Name:     name,
+		State:    state,
+		PageNum:  util.GetPage(c),
+		PageSize: setting.AppSetting.PageSize,
+	}
+	tags, err := tagService.GetAll()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_GET_TAGS_FAIL, nil)
+		return
+	}
 
-	data["lists"] = models.GetTags(util.GetPage(c), setting.AppSetting.PageSize, maps)
-	data["total"] = models.GetTagTotal(maps)
+	count, err := tagService.Count()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_COUNT_TAG_FAIL, nil)
+		return
+	}
 
-	appG.Response(http.StatusOK, code, data)
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{
+		"list":  tags,
+		"total": count,
+	})
 }
 
 // @Summary Add a tag
@@ -177,6 +188,51 @@ func DeleteTag(c *gin.Context) {
 
 	if err := tagService.Delete(); err != nil {
 		appG.Response(http.StatusOK, e.ERROR_DELETE_TAG_FAIL, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+
+func ExportTag(c *gin.Context) {
+	appG := app.Gin{C: c}
+	name := c.PostForm("name")
+	state := -1
+	if arg := c.PostForm("state"); arg != "" {
+		state = com.StrTo(arg).MustInt()
+	}
+
+	tagService := tag_service.Tag{
+		Name:  name,
+		State: state,
+	}
+
+	filename, err := tagService.Export()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_EXPORT_TAG_FAIL, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"export_url":      export.GetExcelFullUrl(filename),
+		"export_save_url": export.GetExcelPath() + filename,
+	})
+}
+
+func ImportTag(c *gin.Context) {
+	appG := app.Gin{C: c}
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		logging.Warn(err)
+		appG.Response(http.StatusOK, e.ERROR, nil)
+		return
+	}
+
+	tagService := tag_service.Tag{}
+	err = tagService.Import(file)
+	if err != nil {
+		logging.Warn(err)
+		appG.Response(http.StatusOK, e.ERROR_IMPORT_TAG_FAIL, nil)
 		return
 	}
 
