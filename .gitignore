@@ -4,6 +4,7 @@ runtime
 
 *.log
 *.exe
+*.csv
 
 go-gin-example
 main

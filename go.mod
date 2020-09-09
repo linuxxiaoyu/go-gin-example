@@ -3,6 +3,7 @@ module github.com/linuxxiaoyu/go-gin-example
 go 1.14
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.12.2
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
+	github.com/tealeg/xlsx v1.0.5
 	github.com/unknwon/com v1.0.1
 	github.com/urfave/cli/v2 v2.2.0 // indirect
 	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
