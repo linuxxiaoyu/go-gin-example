@@ -13,16 +13,27 @@ type Tag struct {
 	State      int    `json:"state"`
 }
 
-func GetTags(pageNum, pageSize int, maps interface{}) (tags []Tag) {
-	db.Where(maps).Offset(pageNum).Limit(pageSize).Find(&tags)
+func GetTags(pageNum, pageSize int, maps interface{}) ([]Tag, error) {
+	var tags []Tag
+	if pageSize > 0 && pageNum > 0 {
+		db = db.Offset(pageNum).Limit(pageSize)
+	}
 
-	return
+	err := db.Where(maps).Find(&tags).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+
+	return tags, nil
 }
 
-func GetTagTotal(maps interface{}) (count int) {
-	db.Model(&Tag{}).Where(maps).Count(&count)
+func GetTagTotal(maps interface{}) (int, error) {
+	var count int
+	if err := db.Model(&Tag{}).Where(maps).Count(&count).Error; err != nil {
+		return 0, err
+	}
 
-	return
+	return count, nil
 }
 
 func ExistTagByNamne(name string) bool {
