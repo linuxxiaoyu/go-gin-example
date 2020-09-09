@@ -3,6 +3,8 @@ package routers
 import (
 	"net/http"
 
+	"github.com/linuxxiaoyu/go-gin-example/pkg/qrcode"
+
 	_ "github.com/linuxxiaoyu/go-gin-example/docs"
 	"github.com/linuxxiaoyu/go-gin-example/middleware/jwt"
 	"github.com/linuxxiaoyu/go-gin-example/pkg/export"
@@ -23,6 +25,7 @@ func Init() *gin.Engine {
 
 	r.StaticFS("/upload/images", http.Dir(upload.GetImageFullPath()))
 	r.StaticFS("/export", http.Dir(export.GetExcelFullPath()))
+	r.StaticFS("/qrcode", http.Dir(qrcode.GetQrCodeFullPath()))
 
 	r.GET("/auth", api.GetAuth)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -45,6 +48,7 @@ func Init() *gin.Engine {
 		apiv1.POST("/articles", v1.AddArticle)
 		apiv1.PUT("/articles/:id", v1.EditArticle)
 		apiv1.DELETE("/articles/:id", v1.DeleteArticle)
+		apiv1.POST("/articles/poster/generate", v1.GenerateArticlePoster)
 	}
 
 	return r
